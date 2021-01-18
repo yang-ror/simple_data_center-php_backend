@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =============================================================================
+ links.xml
+ project: Simple Data Center
+ author: Zifan Yang
+ date created: 2020-07-10
+ last modified: 2021-01-15
+ 
+store the links' id, url and [owner, hide, star,(for future features implementation)]
+============================================================================= -->
+<linkList>
+<link><id>1</id><url>https://helpdeskgeek.com/linux-tips/how-to-uninstall-ubuntu-in-a-windows-10-dual-boot-system/#:~:text=Remove%20the%20Grub%20Bootloader.%201%20Go%20to%20the,Type%20another%20command%20bootrec%20%2Fscanos%20...%20More%20items</url><owner>192.168.8.152</owner><date>2020-08-09 04:40:17am</date><star>FALSE</star><hide>TRUE</hide></link><link><id>2</id><url>https://developer.nvidia.com/cuda-10.0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;target_distro=Ubuntu&amp;target_version=1804&amp;target_type=deblocal</url><owner>192.168.8.152</owner><date>2020-08-09 05:47:14pm</date><star>FALSE</star><hide>TRUE</hide></link><link><id>4</id><url/><owner>192.168.8.177</owner><date>2021-01-15 12:53:24am</date><star>FALSE</star><hide>TRUE</hide></link></linkList>

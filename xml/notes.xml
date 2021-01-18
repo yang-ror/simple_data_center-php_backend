@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =============================================================================
+ notes.xml
+ project: Simple Data Center
+ author: Zifan Yang
+ date created: 2020-07-10
+ last modified: 2021-01-15
+ 
+store the notes' id, content and [owner, hide, star,(for future features implementation)]
+============================================================================= -->
+<noteList>
+</noteList>
