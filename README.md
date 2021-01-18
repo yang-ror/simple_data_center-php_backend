@@ -22,6 +22,14 @@ Links and Notes are stored in XML files
   - Read/write/edit to XML file are done by PHP with cookie and post requests.
 
 
+### Build based on:
+ - Ubuntu
+ - Apache \ php
+ - html \ css \ js
+ - bootstrap 5
+ - xml
+
+
 **Live demo**:
 
 **Dockerhub**: [https://hub.docker.com/repository/docker/yangror/simple_data_center](https://hub.docker.com/repository/docker/yangror/simple_data_center)
