@@ -36,6 +36,7 @@ Links and Notes are stored in XML files
 
 ### Things to know:
  - Inorder to read/write xml file, need to install php-xml
+ - Change permissions on ./files/, links.xml, and notes.xml to allow php to read/write
  - Modify php.ini to allow larger file upload(2M on default):
     - upload_max_filesize = 150M
     - post_max_size = 150M
