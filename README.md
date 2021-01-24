@@ -30,9 +30,9 @@ Links and Notes are stored in XML files
  - xml
 
 
-**Live demo**: [http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080](http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080)
+***Live demo***: [http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080](http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080)
 
-**Dockerhub**: [https://hub.docker.com/repository/docker/yangror/simple_data_center](https://hub.docker.com/repository/docker/yangror/simple_data_center)
+***Dockerhub***: [https://hub.docker.com/repository/docker/yangror/simple_data_center](https://hub.docker.com/repository/docker/yangror/simple_data_center)
 
 ### Things to know:
  - Inorder to read/write xml file, need to install php-xml
