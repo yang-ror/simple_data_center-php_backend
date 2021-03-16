@@ -3,7 +3,10 @@
  project: Simple Data Center
  author: Zifan Yang
  date created: 2020-07-09
- last modified: 2021-01-15
+ last modified: 2021-03-15
+ change log:
+	2021-03-15:
+		1. Optimized for mobile view
 ============================================================================= -->
 
 <!doctype html>
@@ -11,28 +14,67 @@
     <head>
 		<title>Simple Data Center</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0", charset=utf-8>
-
 		<link rel="stylesheet" type="text/css" href="bootstrap-5.0.0-beta1-dist/css/bootstrap.min.css">
-        <script src = "bootstrap-5.0.0-beta1-dist/js/bootstrap.js"></script>
 
 		<style>
-			.image-previews{
-				max-width: 100%;
+			/* .link-table{
+				width: 100%;
 			}
-			.images{
-				/* To make sure 4x3 picture shows in full */
-				max-height: 488px;
-				overflow: hidden;
-			}
-			.image-title{
-				max-width: 200px;
+
+			.link-cell{
+				width: 100%;
+			} */
+
+			.file-name-holder{
 				vertical-align:top;
 				display: inline-block;
 			}
+
+			.file-name{
+				max-width: 100%;
+				display: inline-block;
+			}
+
+			.image-previews{
+				max-width: 100%;
+			}
+
+			.images{
+				max-height: 18rem;
+				overflow: hidden;
+			}
+
+			.image-card-title{
+				padding: 5px;
+				padding-left: 15px;
+				padding-top: 10px;
+			}
+
+			.image-title-holder{
+				vertical-align:top;
+				display: inline-block;
+			}
+
+			.image-title{
+				max-width: 100%;
+				display: inline-block;
+			}
+
+			.link-holder{
+				vertical-align:top;
+				display: inline-block;
+			}
+
+			.link-a{
+				max-width: 100%;
+				display: inline-block;
+			}
+
 			.notes{
 				max-width: 18rem;
 				height: 18rem;
 			}
+
 			.note-body{
 				overflow-y: auto;
 			}
@@ -42,6 +84,11 @@
 			//delete file by the filename
 			function deleteFile(filename){
 				window.location.replace("./deleteFile.php?fname=" + filename);
+			}
+
+			//delete link by the id
+			function deleteLink(id){
+				window.location.replace("./mark.php?t=links&id=" + id + "&a=delete");
 			}
 
 			//Before sending data to php, change all special characters to plain text in its {shorthand} for better storage
@@ -57,7 +104,7 @@
 			}
 
 			//select all the text in a box to copied by the user
-			function selectAll(element){
+			function selectAllAndCopy(element){
 				var doc = document, text = doc.getElementById(element), range, selection;    
 				if(doc.body.createTextRange){
 					range = document.body.createTextRange();
@@ -71,16 +118,64 @@
 					selection.removeAllRanges();
 					selection.addRange(range);
 				}
+
+				if (document.selection) {
+					var range = document.body.createTextRange();
+					range.moveToElementText(document.getElementById(element));
+					range.select().createTextRange();
+					document.execCommand("copy");
+				} else if (window.getSelection) {
+					var range = document.createRange();
+					range.selectNode(document.getElementById(element));
+					window.getSelection().addRange(range);
+					document.execCommand("copy");
+				}
 			}
 
-			//delete note by its id
+			//delete note by id
 			function deleteNote(id){
 				window.location.replace("./mark.php?t=notes&id=" + id + "&a=delete");
 			}
+
+			function resizeElement(){
+				var imagesCardTitles = document.getElementsByClassName("image-card-title");
+				if(imagesCardTitles.length > 0){
+					var widthOfTitleBar = imagesCardTitles[0].clientWidth;
+					var widthOfTitle = widthOfTitleBar - 60;
+					var widthOfTitleStr = widthOfTitle.toString() + "px";
+					var imagesTitleHolders = document.getElementsByClassName("image-title-holder");
+					for(var i = 0; i < imagesTitleHolders.length; i++){
+						imagesTitleHolders[i].style.width = widthOfTitleStr;
+					}
+				}
+
+				var files = document.getElementsByClassName("files");
+				if(files.length > 0){
+					var widthOfFileTitleHolder = files[0].clientWidth;
+					var widthOfFileTitle = widthOfFileTitleHolder - 80;
+					var widthOfFileTitleStr = widthOfFileTitle.toString() + "px";
+					var fileNameHolder = document.getElementsByClassName("file-name-holder");
+					for(var i = 0; i < fileNameHolder.length; i++){
+						fileNameHolder[i].style.width = widthOfFileTitleStr;
+					}
+				}
+
+				var linkHolders = document.getElementsByClassName("link-holder");
+				for(var i = 0; i < linkHolders.length; i++){
+					linkHolders[i].style.width = widthOfFileTitleStr;
+				}
+
+				
+			}
+
+			document.addEventListener('DOMContentLoaded', function(){
+				// document.getElementById("radiobutton")
+				resizeElement();
+			});
 		</script>
     </head>
 
-    <body>
+    <body onresize="resizeElement()">
 		<div class="container">
 			<h1>Simple Data Center</h1>
 			
@@ -102,11 +197,7 @@
 				</div>
 			</form>
 
-			<!-- <form action="upload.php" method ="post" enctype="multipart/form-data">
-				<input type="file" id="nfile" name="nfile">
-				<input type="submit" value = "Upload" name ="submit">
-			</form> -->
-
+			<ul class="list-group">
 			<?php
 				// ini_set('display_errors', 1);
 				// ini_set('display_startup_errors', 1);
@@ -147,16 +238,22 @@
 				$i = 0;
 				foreach($fileList as $filename){
 					if($filename[0] !== '.' && !isImage(getFileType($filename))){
-						$i++;
-						echo "<label>$i. </label>";
-						echo "<a href='$dir/$filename'>$filename</a>";
-						echo "<label>(</label>";
-						echo "<a href ='./deleteFile.php?fname=", $filename, "'>delete</a>";
-						echo "<label>)</label>";
-						echo "<br>";
+						echo '<li class="list-group-item files">';
+
+							$i++;
+							echo "	<label>$i.</label>";
+
+							echo '	<div class="file-name-holder">';
+							echo "		<a class='file-name text-truncate' href='$dir/$filename'>$filename</a>";
+							echo '	</div>';
+
+							echo '	<button onclick="', "deleteFile('", $filename, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
+
+						echo '</li>';
 					}
 				}
 			?>
+			</ul>
 
 			<br>
 			<br>
@@ -164,25 +261,25 @@
 			<div class="container">
 				<div class="row">
 
-			<?php
-				$i = 0;
-				foreach($fileList as $filename){
-					if($filename[0] !== '.' && isImage(getFileType($filename))){
-						echo '<div class="col-6 col-sm-3">';
-						echo	 '<div class="card text-dark bg-light mb-3 images" style="width: 18rem;">';
-						echo		'<div class="card-body image-body">';
-						echo			"<label>", ++$i, '.', "</label>";
-						echo			'<div class="image-title">';
-						echo				"<a class='image-title text-truncate' href='$dir/$filename'>$filename</a>";
-						echo			'</div>';
-						echo 			'<button onclick="', "deleteFile('", $filename, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
-						echo		"</div>";
-						echo		'<img src="', $dir, '/', $filename, '" class="image-previews" alt="', $filename, '">';
-						echo 	'</div>';
-						echo '</div>';
+				<?php
+					$i = 0;
+					foreach($fileList as $filename){
+						if($filename[0] !== '.' && isImage(getFileType($filename))){
+							echo '<div class="col-6 col-sm-3">';
+							echo	 '<div class="card text-dark bg-light mb-3 images">';
+							echo		'<div class="card-body image-body image-card-title">';
+							echo			"<label>", ++$i, '.', "</label>";
+							echo			'<div class="image-title-holder">';
+							echo				"<a class='image-title text-truncate' href='$dir/$filename'>$filename</a>";
+							echo			'</div>';
+							echo 			'<button onclick="', "deleteFile('", $filename, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
+							echo		"</div>";
+							echo		'<img src="', $dir, '/', $filename, '" class="image-previews" alt="', $filename, '">';
+							echo 	'</div>';
+							echo '</div>';
+						}
 					}
-				}
-			?>
+				?>
 				</div>
 			</div>
 			<br>
@@ -196,11 +293,7 @@
 				</div>
 			</form>
 
-			<!-- <form action = "/addLink.php" method = "post">
-				<input type="text" name = "nlink">
-				<input type="submit" value = "Add link">
-			</form> -->
-
+			<ul class="list-group">
 			<?php
 				$doc = new DOMDocument();
 				$doc->load('./xml/links.xml');
@@ -225,24 +318,23 @@
 						$hide = $link->getElementsByTagName('hide')->item(0)->nodeValue;
 
 						if($hide == 'FALSE'){
-							if($star == 'TRUE')
-								echo "*";
-							else
-								echo " ";
-							echo "<label> " . ++$i . '. </label>';
-							echo "<a  href = '" . $url . "'target='_blank'>";
-							echo $url;
-							echo "</a>";
-							echo "<label>(</label>";
-							// echo "<a href ='mark.php?t=links&id=$id&a=star'>star</a>";
-							// echo " | ";
-							echo "<a href ='./mark.php?t=links&id=$id&a=delete'>delete</a>";
-							echo "<label>)</label>";
-							echo "<br>";
+							echo '<li class="list-group-item links">';
+
+							echo "	<label> " . ++$i . '. </label>';
+
+							echo '<div class="link-holder">';
+							echo "		<a class='link-a text-truncate' href = '" . $url . "'target='_blank'>" . $url . "</a>";
+							echo '</div>';
+
+							echo '<button onclick="', "deleteLink('", $id, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
+
+							echo "</li>";
 						}
 					}
 				}
 			?>
+			</ul>
+
 			<br>
 			<br>
 			<h2 id="notes-title">Notes</h2>
@@ -250,9 +342,6 @@
 				<textarea id="nnote" type="text" class="form-control" placeholder="Enter Note" aria-label="Enter Note" aria-describedby="button-addon2" style="resize:none;"></textarea>
 				<button class="btn btn btn-outline-primary" id="button-addon2" onclick="saveNote()">Add Note</button>
 			</div>
-			<!-- <textarea id="nnote"></textarea>
-			<button onclick="saveNote()">Save</button>
-			<br> -->
 
 			<div class="container">
 				<div class="row">
@@ -292,7 +381,7 @@
 									echo 	'<div class="card text-dark bg-light mb-3 notes">';
 									echo 		'<div class="card-header">';
 									echo 			'<label>', ++$i, '. ', '</label>';
-									echo 			"<a href ='javascript:selectAll(\"note-content-", $i, "\")'>Select</a>";
+									echo 			"<a href ='javascript:selectAllAndCopy(\"note-content-", $i, "\")'>Copy</a>";
 									echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
 									echo 		'</div>';
 									echo 		'<div class="card-body note-body">';
@@ -304,13 +393,6 @@
 									echo 		'</div>';
 									echo 	'</div>';
 									echo '</div>';
-									// echo "</textarea>";
-									// echo " (";
-									// echo "<a href ='mark.php?t=notes&id=$id&a=star'>star</a>";
-									// echo " | ";
-									// echo "<a href ='mark.php?t=notes&id=$id&a=delete'>delete</a>";
-									// echo ") ";
-									// echo "<br>";
 								}
 							}
 						}
@@ -318,5 +400,6 @@
 				</div>
 			</div>
 		</div>
+		<script src = "bootstrap-5.0.0-beta1-dist/js/bootstrap.js"></script>
     </body>
 </html>

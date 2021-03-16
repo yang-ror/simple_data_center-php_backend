@@ -14,7 +14,7 @@
 
 	$note = $_COOKIE["note"];
 
-	//echo $note;
+	// echo $note;
 
 	$note = str_replace("\\", "{bs}", $note);
 
