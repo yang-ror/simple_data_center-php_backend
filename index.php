@@ -3,10 +3,12 @@
  project: Simple Data Center
  author: Zifan Yang
  date created: 2020-07-09
- last modified: 2021-03-15
+ last modified: 2021-03-16
  change log:
 	2021-03-15:
 		1. Optimized for mobile view
+	2021-03-16:
+		1. Store data in MongoDB instead of xml file
 ============================================================================= -->
 
 <!doctype html>
@@ -17,14 +19,6 @@
 		<link rel="stylesheet" type="text/css" href="bootstrap-5.0.0-beta1-dist/css/bootstrap.min.css">
 
 		<style>
-			/* .link-table{
-				width: 100%;
-			}
-
-			.link-cell{
-				width: 100%;
-			} */
-
 			.file-name-holder{
 				vertical-align:top;
 				display: inline-block;
@@ -88,7 +82,7 @@
 
 			//delete link by the id
 			function deleteLink(id){
-				window.location.replace("./mark.php?t=links&id=" + id + "&a=delete");
+				window.location.replace("./deleteLink.php?id=" + id);
 			}
 
 			//Before sending data to php, change all special characters to plain text in its {shorthand} for better storage
@@ -134,7 +128,7 @@
 
 			//delete note by id
 			function deleteNote(id){
-				window.location.replace("./mark.php?t=notes&id=" + id + "&a=delete");
+				window.location.replace("./deleteNote.php?id=" + id);
 			}
 
 			function resizeElement(){
@@ -164,8 +158,6 @@
 				for(var i = 0; i < linkHolders.length; i++){
 					linkHolders[i].style.width = widthOfFileTitleStr;
 				}
-
-				
 			}
 
 			document.addEventListener('DOMContentLoaded', function(){
@@ -199,9 +191,11 @@
 
 			<ul class="list-group">
 			<?php
-				// ini_set('display_errors', 1);
-				// ini_set('display_startup_errors', 1);
-				// error_reporting(E_ALL);
+				ini_set('display_errors', 1);
+				ini_set('display_startup_errors', 1);
+				error_reporting(E_ALL);
+
+				require 'vendor/autoload.php';
 
 				//check is file format is any in "jpg", "jpeg", "gif","png"
 				function isImage($fileType){
@@ -295,43 +289,66 @@
 
 			<ul class="list-group">
 			<?php
-				$doc = new DOMDocument();
-				$doc->load('./xml/links.xml');
-				$linkList = $doc->getElementsByTagName('link');
+				$client = new MongoDB\Client("mongodb://localhost:27017");
+				$collection = $client->datacenter->links;
+				$options = ['sort' => ['id' => -1]];
+				$links = $collection->find([ 'hide' => false ], $options);
 
-				if(count($linkList) > 0){
-					//Need to convert DOMNodeArray to array in order to reverse
-					$links = array();
-					foreach($linkList as $link){
-						array_push($links, $link);
-					}
+				$i = 0;
+				foreach($links as $link){
+					$id = $link['id'];
+					$title = $link['title'];
+					$url = $link['url'];
 
-					$links = array_reverse($links);
-				
-					$i = 0;
-					foreach($links as $link){
-						$id = $link->getElementsByTagName('id')->item(0)->nodeValue;
-						$url = $link->getElementsByTagName('url')->item(0)->nodeValue;
-						$owner = $link->getElementsByTagName('owner')->item(0)->nodeValue;
-						$date = $link->getElementsByTagName('date')->item(0)->nodeValue;
-						$star = $link->getElementsByTagName('star')->item(0)->nodeValue;
-						$hide = $link->getElementsByTagName('hide')->item(0)->nodeValue;
+					echo '<li class="list-group-item links">';
 
-						if($hide == 'FALSE'){
-							echo '<li class="list-group-item links">';
+					echo "	<label> " . ++$i . '. </label>';
 
-							echo "	<label> " . ++$i . '. </label>';
+					echo '<div class="link-holder">';
+					echo "		<a class='link-a text-truncate' href = '" . $url . "'target='_blank'>" . $title . "</a>";
+					echo '</div>';
 
-							echo '<div class="link-holder">';
-							echo "		<a class='link-a text-truncate' href = '" . $url . "'target='_blank'>" . $url . "</a>";
-							echo '</div>';
+					echo '<button onclick="', "deleteLink('", $id, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
 
-							echo '<button onclick="', "deleteLink('", $id, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
-
-							echo "</li>";
-						}
-					}
+					echo "</li>";
 				}
+				// $doc = new DOMDocument();
+				// $doc->load('./xml/links.xml');
+				// $linkList = $doc->getElementsByTagName('link');
+
+				// if(count($linkList) > 0){
+				// 	//Need to convert DOMNodeArray to array in order to reverse
+				// 	$links = array();
+				// 	foreach($linkList as $link){
+				// 		array_push($links, $link);
+				// 	}
+
+				// 	$links = array_reverse($links);
+				
+				// 	$i = 0;
+				// 	foreach($links as $link){
+				// 		$id = $link->getElementsByTagName('id')->item(0)->nodeValue;
+				// 		$url = $link->getElementsByTagName('url')->item(0)->nodeValue;
+				// 		$owner = $link->getElementsByTagName('owner')->item(0)->nodeValue;
+				// 		$date = $link->getElementsByTagName('date')->item(0)->nodeValue;
+				// 		$star = $link->getElementsByTagName('star')->item(0)->nodeValue;
+				// 		$hide = $link->getElementsByTagName('hide')->item(0)->nodeValue;
+
+				// 		if($hide == 'FALSE'){
+				// 			echo '<li class="list-group-item links">';
+
+				// 			echo "	<label> " . ++$i . '. </label>';
+
+				// 			echo '<div class="link-holder">';
+				// 			echo "		<a class='link-a text-truncate' href = '" . $url . "'target='_blank'>" . $url . "</a>";
+				// 			echo '</div>';
+
+				// 			echo '<button onclick="', "deleteLink('", $id, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
+
+				// 			echo "</li>";
+				// 		}
+				// 	}
+				// }
 			?>
 			</ul>
 
@@ -346,56 +363,94 @@
 			<div class="container">
 				<div class="row">
 					<?php
-						$doc = new DOMDocument();
-						$doc->load('./xml/notes.xml');
-						$noteList = $doc->getElementsByTagName('note');
-						if(count($noteList) > 0){
-							$notes = array();
-							foreach($noteList as $note){
-								array_push($notes, $note);
-							}
+						$client = new MongoDB\Client("mongodb://localhost:27017");
+						$collection = $client->datacenter->notes;
+						$options = ['sort' => ['id' => -1]];
+						$notes = $collection->find([ 'hide' => false ], $options);
 
-							$notes = array_reverse($notes);
+						$i = 0;
+						foreach($notes as $note){
+							$id = $note['id'];
+							$content = $note['content'];
 
-							$i = 0;
-							foreach($notes as $note){
-								$id = $note->getElementsByTagName('id')->item(0)->nodeValue;
-								$content = $note->getElementsByTagName('content')->item(0)->nodeValue;
-								$owner = $note->getElementsByTagName('owner')->item(0)->nodeValue;
-								$date = $note->getElementsByTagName('date')->item(0)->nodeValue;
-								$star = $note->getElementsByTagName('star')->item(0)->nodeValue;
-								$hide = $note->getElementsByTagName('hide')->item(0)->nodeValue;
+							//Change the {shorthand} back to special characters
+							$text = str_replace("{dq}", '"', $content);
+							$text = str_replace("{sq}", "'", $text);
+							$text = str_replace("{bs}", "\\", $text);
+							$text = str_replace("{sc}", ";", $text);
+							$text = str_replace("<", "&lt;", $text);
+							$text = str_replace(">", "&rt;", $text);
 
-								if($hide == 'FALSE'){
-									//Change the {shorthand} back to special characters
-									$text = str_replace("{dq}", '"', $content);
-									$text = str_replace("{sq}", "'", $text);
-									$text = str_replace("{bs}", "\\", $text);
-									$text = str_replace("{sc}", ";", $text);
-									$text = str_replace("<", "&lt;", $text);
-									$text = str_replace(">", "&rt;", $text);
+							$textByLine = explode("{nl}", $text);
 
-									$textByLine = explode("{nl}", $text);
-
-									echo '<div class ="col-6 col-sm-3">';
-									echo 	'<div class="card text-dark bg-light mb-3 notes">';
-									echo 		'<div class="card-header">';
-									echo 			'<label>', ++$i, '. ', '</label>';
-									echo 			"<a href ='javascript:selectAllAndCopy(\"note-content-", $i, "\")'>Copy</a>";
-									echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
-									echo 		'</div>';
-									echo 		'<div class="card-body note-body">';
-									echo 			'<p id="note-content-', $i, '" class="card-text">';
-														foreach ($textByLine as $line){
-															echo $line . "<br>";
-														}
-									echo 			'</p>';
-									echo 		'</div>';
-									echo 	'</div>';
-									echo '</div>';
-								}
-							}
+							echo '<div class ="col-6 col-sm-3">';
+							echo 	'<div class="card text-dark bg-light mb-3 notes">';
+							echo 		'<div class="card-header">';
+							echo 			'<label>', ++$i, '. ', '</label>';
+							echo 			"<a href ='javascript:selectAllAndCopy(\"note-content-", $i, "\")'>Copy</a>";
+							echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
+							echo 		'</div>';
+							echo 		'<div class="card-body note-body">';
+							echo 			'<p id="note-content-', $i, '" class="card-text">';
+												foreach ($textByLine as $line){
+													echo $line . "<br>";
+												}
+							echo 			'</p>';
+							echo 		'</div>';
+							echo 	'</div>';
+							echo '</div>';
 						}
+
+						// $doc = new DOMDocument();
+						// $doc->load('./xml/notes.xml');
+						// $noteList = $doc->getElementsByTagName('note');
+						// if(count($noteList) > 0){
+						// 	$notes = array();
+						// 	foreach($noteList as $note){
+						// 		array_push($notes, $note);
+						// 	}
+
+						// 	$notes = array_reverse($notes);
+
+						// 	$i = 0;
+						// 	foreach($notes as $note){
+						// 		$id = $note->getElementsByTagName('id')->item(0)->nodeValue;
+						// 		$content = $note->getElementsByTagName('content')->item(0)->nodeValue;
+						// 		$owner = $note->getElementsByTagName('owner')->item(0)->nodeValue;
+						// 		$date = $note->getElementsByTagName('date')->item(0)->nodeValue;
+						// 		$star = $note->getElementsByTagName('star')->item(0)->nodeValue;
+						// 		$hide = $note->getElementsByTagName('hide')->item(0)->nodeValue;
+
+						// 		if($hide == 'FALSE'){
+						// 			//Change the {shorthand} back to special characters
+						// 			$text = str_replace("{dq}", '"', $content);
+						// 			$text = str_replace("{sq}", "'", $text);
+						// 			$text = str_replace("{bs}", "\\", $text);
+						// 			$text = str_replace("{sc}", ";", $text);
+						// 			$text = str_replace("<", "&lt;", $text);
+						// 			$text = str_replace(">", "&rt;", $text);
+
+						// 			$textByLine = explode("{nl}", $text);
+
+						// 			echo '<div class ="col-6 col-sm-3">';
+						// 			echo 	'<div class="card text-dark bg-light mb-3 notes">';
+						// 			echo 		'<div class="card-header">';
+						// 			echo 			'<label>', ++$i, '. ', '</label>';
+						// 			echo 			"<a href ='javascript:selectAllAndCopy(\"note-content-", $i, "\")'>Copy</a>";
+						// 			echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
+						// 			echo 		'</div>';
+						// 			echo 		'<div class="card-body note-body">';
+						// 			echo 			'<p id="note-content-', $i, '" class="card-text">';
+						// 								foreach ($textByLine as $line){
+						// 									echo $line . "<br>";
+						// 								}
+						// 			echo 			'</p>';
+						// 			echo 		'</div>';
+						// 			echo 	'</div>';
+						// 			echo '</div>';
+						// 		}
+						// 	}
+						// }
 					?>
 				</div>
 			</div>
