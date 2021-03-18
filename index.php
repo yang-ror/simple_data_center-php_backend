@@ -11,6 +11,7 @@
 		1. Store data in MongoDB instead of xml file
 	2021-03-17:
 		1. Now sends new note as post request since cookie and get have a size limit of 4096 bytes
+		2. Fix a bug that links won't be truncated when there's no files on server
 ============================================================================= -->
 
 <!doctype html>
@@ -91,27 +92,6 @@
 				window.location.replace("./deleteLink.php?id=" + id);
 			}
 
-			//Before sending data to php, change all special characters to plain text in its shorthand for better storage
-			// function saveNote(){
-			// 	var newNote = document.getElementById('nnote').value;
-			// 	newNote = newNote.replace(new RegExp('\r?\n', 'g'), '{nl}');
-			// 	newNote = newNote.replace(new RegExp('\;', 'g'), '{sc}');
-			// 	newNote = newNote.replace(new RegExp('\t', 'g'), '{tb}');
-
-			// 	var xhr = new XMLHttpRequest();
-			// 	xhr.open("POST", './addNote.php', true);
-
-			// 	xhr.onreadystatechange = function() {
-			// 		// Call a function when the state changes.
-			// 		if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-			// 			console.log("complete")
-			// 			window.location.replace("./index.php#notes-title");
-			// 		}
-			// 	}
-
-			// 	xhr.send("nnote=" + newNote);
-			// }
-
 			//select the text in a card and copy to clipboard
 			function selectAllAndCopy(element){
 				var doc = document, text = doc.getElementById(element), range, selection;    
@@ -169,9 +149,15 @@
 					}
 				}
 
-				var linkHolders = document.getElementsByClassName("link-holder");
-				for(var i = 0; i < linkHolders.length; i++){
-					linkHolders[i].style.width = widthOfFileTitleStr;
+				var links = document.getElementsByClassName("links");
+				if(links.length > 0){
+					var widthOfLinkTitleHolder = links[0].clientWidth;
+					var widthOfLinkTitle = widthOfLinkTitleHolder - 80;
+					var widthOfLinkTitleStr = widthOfLinkTitle.toString() + "px";
+					var linkHolders = document.getElementsByClassName("link-holder");
+					for(var i = 0; i < linkHolders.length; i++){
+						linkHolders[i].style.width = widthOfLinkTitleStr;
+					}
 				}
 			}
 
