@@ -23,7 +23,7 @@
 
     $result = $collection->deleteOne( [ 'id' => $id+""] );
 
-    printf("Deleted %d document(s)\n", $result->getDeletedCount());
+    // printf("Deleted %d document(s)\n", $result->getDeletedCount());
 
     header("Location: ./index.php#notes-title");
 ?>

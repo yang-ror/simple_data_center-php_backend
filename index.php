@@ -3,12 +3,14 @@
  project: Simple Data Center
  author: Zifan Yang
  date created: 2020-07-09
- last modified: 2021-03-16
+ last modified: 2021-03-17
  change log:
 	2021-03-15:
 		1. Optimized for mobile view
 	2021-03-16:
 		1. Store data in MongoDB instead of xml file
+	2021-03-17:
+		1. Now sends new note as post request since cookie and get have a size limit of 4096 bytes
 ============================================================================= -->
 
 <!doctype html>
@@ -72,6 +74,10 @@
 			.note-body{
 				overflow-y: auto;
 			}
+
+			.note-text{
+				height: 100%;
+			}
 		</style>
 
 		<script>
@@ -85,19 +91,28 @@
 				window.location.replace("./deleteLink.php?id=" + id);
 			}
 
-			//Before sending data to php, change all special characters to plain text in its {shorthand} for better storage
-			function saveNote(){
-				var note = document.getElementById('nnote').value;
-				note = note.replace(new RegExp('\r?\n', 'g'), '{nl}');
-				note = note.replace('\t', '{tb}');
-				note = note.replace('"', '{dq}');
-				note = note.replace('\;', '{sc}');
-				note = note.replace("'", "{sq}");
-				document.cookie = "note=" + note;
-				window.location.replace("./addNote.php");
-			}
+			//Before sending data to php, change all special characters to plain text in its shorthand for better storage
+			// function saveNote(){
+			// 	var newNote = document.getElementById('nnote').value;
+			// 	newNote = newNote.replace(new RegExp('\r?\n', 'g'), '{nl}');
+			// 	newNote = newNote.replace(new RegExp('\;', 'g'), '{sc}');
+			// 	newNote = newNote.replace(new RegExp('\t', 'g'), '{tb}');
 
-			//select all the text in a box to copied by the user
+			// 	var xhr = new XMLHttpRequest();
+			// 	xhr.open("POST", './addNote.php', true);
+
+			// 	xhr.onreadystatechange = function() {
+			// 		// Call a function when the state changes.
+			// 		if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+			// 			console.log("complete")
+			// 			window.location.replace("./index.php#notes-title");
+			// 		}
+			// 	}
+
+			// 	xhr.send("nnote=" + newNote);
+			// }
+
+			//select the text in a card and copy to clipboard
 			function selectAllAndCopy(element){
 				var doc = document, text = doc.getElementById(element), range, selection;    
 				if(doc.body.createTextRange){
@@ -106,7 +121,7 @@
 					range.select();
 				}
 				else if(window.getSelection){
-					selection = window.getSelection();        
+					selection = window.getSelection();
 					range = document.createRange();
 					range.selectNodeContents(text);
 					selection.removeAllRanges();
@@ -165,9 +180,9 @@
 				resizeElement();
 			});
 		</script>
-    </head>
+	</head>
 
-    <body onresize="resizeElement()">
+	<body onresize="resizeElement()">
 		<div class="container">
 			<h1>Simple Data Center</h1>
 			
@@ -312,53 +327,18 @@
 
 					echo "</li>";
 				}
-				// $doc = new DOMDocument();
-				// $doc->load('./xml/links.xml');
-				// $linkList = $doc->getElementsByTagName('link');
-
-				// if(count($linkList) > 0){
-				// 	//Need to convert DOMNodeArray to array in order to reverse
-				// 	$links = array();
-				// 	foreach($linkList as $link){
-				// 		array_push($links, $link);
-				// 	}
-
-				// 	$links = array_reverse($links);
-				
-				// 	$i = 0;
-				// 	foreach($links as $link){
-				// 		$id = $link->getElementsByTagName('id')->item(0)->nodeValue;
-				// 		$url = $link->getElementsByTagName('url')->item(0)->nodeValue;
-				// 		$owner = $link->getElementsByTagName('owner')->item(0)->nodeValue;
-				// 		$date = $link->getElementsByTagName('date')->item(0)->nodeValue;
-				// 		$star = $link->getElementsByTagName('star')->item(0)->nodeValue;
-				// 		$hide = $link->getElementsByTagName('hide')->item(0)->nodeValue;
-
-				// 		if($hide == 'FALSE'){
-				// 			echo '<li class="list-group-item links">';
-
-				// 			echo "	<label> " . ++$i . '. </label>';
-
-				// 			echo '<div class="link-holder">';
-				// 			echo "		<a class='link-a text-truncate' href = '" . $url . "'target='_blank'>" . $url . "</a>";
-				// 			echo '</div>';
-
-				// 			echo '<button onclick="', "deleteLink('", $id, "')", '" type="button" class="btn-close float-end" aria-label="Close"></button>';
-
-				// 			echo "</li>";
-				// 		}
-				// 	}
-				// }
 			?>
 			</ul>
 
 			<br>
 			<br>
 			<h2 id="notes-title">Notes</h2>
-			<div class="input-group mb-3" style="height:200px;">
-				<textarea id="nnote" type="text" class="form-control" placeholder="Enter Note" aria-label="Enter Note" aria-describedby="button-addon2" style="resize:none;"></textarea>
-				<button class="btn btn btn-outline-primary" id="button-addon2" onclick="saveNote()">Add Note</button>
-			</div>
+			<form action = "./addNote.php" method = "post">
+				<div class="input-group mb-3" style="height:200px;">
+					<textarea id="nnote" type="text" class="form-control" name="nnote" placeholder="Enter Note" aria-label="Enter Note" aria-describedby="button-addon2" style="resize:none;"></textarea>
+					<input class="btn btn btn-outline-primary" type="submit" value = "Add Note" id="button-addon2"></input>
+				</div>
+			</form>
 
 			<div class="container">
 				<div class="row">
@@ -373,15 +353,15 @@
 							$id = $note['id'];
 							$content = $note['content'];
 
-							//Change the {shorthand} back to special characters
-							$text = str_replace("{dq}", '"', $content);
-							$text = str_replace("{sq}", "'", $text);
-							$text = str_replace("{bs}", "\\", $text);
-							$text = str_replace("{sc}", ";", $text);
-							$text = str_replace("<", "&lt;", $text);
-							$text = str_replace(">", "&rt;", $text);
+							// $content = str_replace("{sc}", ";", $content);
+							// $content = str_replace("{tb}", "\t", $content);
 
-							$textByLine = explode("{nl}", $text);
+							// Change '<' nad '>' to "&lt;" and "&gt;" to avoid to be displaied as html elements;
+							$content = str_replace("<", "&lt;", $content);
+							$content = str_replace(">", "&gt;", $content);
+							
+
+							$textByLine = explode("{nl}", $content);
 
 							echo '<div class ="col-6 col-sm-3">';
 							echo 	'<div class="card text-dark bg-light mb-3 notes">';
@@ -391,70 +371,19 @@
 							echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
 							echo 		'</div>';
 							echo 		'<div class="card-body note-body">';
-							echo 			'<p id="note-content-', $i, '" class="card-text">';
+							echo 			'<pre id="note-content-', $i, '" class="card-text note-text">';
 												foreach ($textByLine as $line){
 													echo $line . "<br>";
 												}
-							echo 			'</p>';
+							echo 			'</pre>';
 							echo 		'</div>';
 							echo 	'</div>';
 							echo '</div>';
 						}
-
-						// $doc = new DOMDocument();
-						// $doc->load('./xml/notes.xml');
-						// $noteList = $doc->getElementsByTagName('note');
-						// if(count($noteList) > 0){
-						// 	$notes = array();
-						// 	foreach($noteList as $note){
-						// 		array_push($notes, $note);
-						// 	}
-
-						// 	$notes = array_reverse($notes);
-
-						// 	$i = 0;
-						// 	foreach($notes as $note){
-						// 		$id = $note->getElementsByTagName('id')->item(0)->nodeValue;
-						// 		$content = $note->getElementsByTagName('content')->item(0)->nodeValue;
-						// 		$owner = $note->getElementsByTagName('owner')->item(0)->nodeValue;
-						// 		$date = $note->getElementsByTagName('date')->item(0)->nodeValue;
-						// 		$star = $note->getElementsByTagName('star')->item(0)->nodeValue;
-						// 		$hide = $note->getElementsByTagName('hide')->item(0)->nodeValue;
-
-						// 		if($hide == 'FALSE'){
-						// 			//Change the {shorthand} back to special characters
-						// 			$text = str_replace("{dq}", '"', $content);
-						// 			$text = str_replace("{sq}", "'", $text);
-						// 			$text = str_replace("{bs}", "\\", $text);
-						// 			$text = str_replace("{sc}", ";", $text);
-						// 			$text = str_replace("<", "&lt;", $text);
-						// 			$text = str_replace(">", "&rt;", $text);
-
-						// 			$textByLine = explode("{nl}", $text);
-
-						// 			echo '<div class ="col-6 col-sm-3">';
-						// 			echo 	'<div class="card text-dark bg-light mb-3 notes">';
-						// 			echo 		'<div class="card-header">';
-						// 			echo 			'<label>', ++$i, '. ', '</label>';
-						// 			echo 			"<a href ='javascript:selectAllAndCopy(\"note-content-", $i, "\")'>Copy</a>";
-						// 			echo 			'<button onclick="deleteNote(', $id, ')" type="button" class="btn-close float-end" aria-label="Close"></button>';
-						// 			echo 		'</div>';
-						// 			echo 		'<div class="card-body note-body">';
-						// 			echo 			'<p id="note-content-', $i, '" class="card-text">';
-						// 								foreach ($textByLine as $line){
-						// 									echo $line . "<br>";
-						// 								}
-						// 			echo 			'</p>';
-						// 			echo 		'</div>';
-						// 			echo 	'</div>';
-						// 			echo '</div>';
-						// 		}
-						// 	}
-						// }
 					?>
 				</div>
 			</div>
 		</div>
 		<script src = "bootstrap-5.0.0-beta1-dist/js/bootstrap.js"></script>
-    </body>
+	</body>
 </html>
