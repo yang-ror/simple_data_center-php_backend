@@ -52,12 +52,13 @@ Links and Notes are stored in json files
 
  - 2021-03-17:
   1. Now sends new note as post request since cookie and get have a size limit of 4096 bytes
-  2. Fixed a bug that links won't be truncated when there's no files on server
+  2. Fixed a bug that links won't be truncated when there are no files on the server
 
 - 2021-03-18:
-  1. Show a progress bar when uploading, and added jQuery and jQuery-Form library to acheive this
-  2. Now store data in json files instead of MongoDB, since MongoDB is not suppport on 32-bit platforms
-  3. Fixed a bug where deleteFile.php doesn't work when file name contains '&' or '+'
+  1. Show a progress bar when uploading, and added jQuery and jQuery-Form library to achieve this
+  2. Now store data in json files instead of MongoDB, since MongoDB is not supported on 32-bit platforms
+  3. Fixed a bug where deleteFile.php doesn't work when filename contains '&' or '+'
   4. css and javascript are now independent files in their sub-directories
   5. move php files for backend operation to the php sub-directory
   6. combine deleteLink.php and deleteNote.php to one php file, delete.php
+
