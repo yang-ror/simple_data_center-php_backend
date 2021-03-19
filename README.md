@@ -29,7 +29,6 @@ Links and Notes are stored in json files
  - jQuery
  - html \ css \ js
  - bootstrap 5
- - jQuery
 
 
 ***Live demo***: [http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080](http://ec2-3-129-148-1.us-east-2.compute.amazonaws.com:3080)
