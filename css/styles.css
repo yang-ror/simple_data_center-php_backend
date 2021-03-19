@@ -1,0 +1,43 @@
+/* =============================================================================
+styles.css
+project: Simple Data Center
+author: Zifan Yang
+date created: 2021-03-18
+============================================================================= */
+.a-holder{
+    vertical-align:top;
+    display: inline-block;
+}
+
+.link-a{
+    max-width: 100%;
+    display: inline-block;
+}
+
+.image-previews{
+    max-width: 100%;
+}
+
+.images{
+    max-height: 18rem;
+    overflow: hidden;
+}
+
+.image-card-title{
+    padding: 5px;
+    padding-left: 15px;
+    padding-top: 10px;
+}
+
+.notes{
+    max-width: 18rem;
+    height: 18rem;
+}
+
+.note-body{
+    overflow-y: auto;
+}
+
+.note-text{
+    height: 100%;
+}
